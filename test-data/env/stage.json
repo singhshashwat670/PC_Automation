@@ -1,0 +1,5 @@
+{
+  "env": "stage",
+  "baseURL": "https://stage.ascentone.com/login.aspx",
+  "timeout": 30000
+}

@@ -1,0 +1,33 @@
+{
+  "name": "playwright-js-enterprise-framework",
+  "version": "1.0.0",
+  "description": "Enterprise Playwright JavaScript Framework with POM, Fixtures, Utilities, Reporting, Environment Support",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:test": "cross-env TEST_ENV=test npx playwright test",
+    "test:stage": "cross-env TEST_ENV=stage npx playwright test",
+    "test:preprod": "cross-env TEST_ENV=preprod npx playwright test",
+    "test:prod": "cross-env TEST_ENV=prod npx playwright test",
+    "report": "npx playwright show-report reports/html"
+  },
+  "keywords": [
+    "playwright",
+    "automation",
+    "javascript",
+    "pom",
+    "enterprise-framework"
+  ],
+  "author": "shashwat.singh",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.9.1",
+    "cross-env": "^7.0.3",
+  "winston": "^3.19.0"
+  }
+}
+
