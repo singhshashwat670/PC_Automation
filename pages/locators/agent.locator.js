@@ -4,7 +4,7 @@ const agentLocators = {
   agent_Tab: (page) => page.locator('#Agents-tab'),
   agentsDropdown: (page) => page.locator('a[title="Agents"]').first(),
   easyCommissionOption: (page) => page.locator('a[title="Easy Commissions"]').first(),
-  //easyCommissionOption: (page) => page.locator('span').filter({ hasText: 'Easy Commissions' }).first(),
+  //easyCommissionOption: (page) => page.locator('span').filter({ hasText: 'Easy Commission' }).first(),
   //easyCommissionOption: (page) => page.locator("span[data-i18n='nav.Agents_Easy_Commissions']"),
   settingsButton: (page) => page.locator('a[data-filter-tags="Agents Easy Commissions Settings"]').first(),
   filterButton: (page) =>  page.getByRole('link', { name: 'Filter' }),
