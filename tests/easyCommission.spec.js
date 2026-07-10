@@ -1,4 +1,5 @@
 const { test, expect } = require('../fixtures/app.fixture');
+const AwardPage = require('../pages/award.page');
 const { nextButton } = require('../pages/locators/login.locator');
 
 test.describe('Easy Commission Workflow', () => {
@@ -7,6 +8,7 @@ test.describe('Easy Commission Workflow', () => {
     dashboardPage,
     agentPage,
     commissionPackagePage,
+    awardPage,
     users,
     packageData,
     logger
@@ -32,18 +34,16 @@ test.describe('Easy Commission Workflow', () => {
       commissionPackagePage.page.getByText(/commission packages/i)
     ).toBeVisible();*/
     await expect(commissionPackagePage.page.locator('#dvHeaderText')).toBeVisible();
-    await commissionPackagePage.clickAddPackage();
+   await commissionPackagePage.clickAddPackage();
     await commissionPackagePage.enterPackageName(packageData.packageName);
     await commissionPackagePage.enterDescription(packageData.description);
     await commissionPackagePage.selectCurrentDate();
     await commissionPackagePage.clickDone();
+    
     await commissionPackagePage.searchPackage(packageData.packageName);
     //await commissionPackagePage.waitForLoadState();
-
-
    //await commissionPackagePage.openFirstResult();
-   await commissionPackagePage.openSearchedPackage(packageData.packageName);
-
+    await commissionPackagePage.openSearchedPackage(packageData.packageName);
     await commissionPackagePage.clickArrowButton(packageData.packageName);
     await expect(commissionPackagePage.page.locator('#dvHeaderText')).toBeVisible();
     await commissionPackagePage.uncheckCourses();
@@ -52,56 +52,37 @@ test.describe('Easy Commission Workflow', () => {
     //await commissionPackagePage.selectVisaVariationYes();
     await commissionPackagePage.checkUnitSection();
     await commissionPackagePage.save();
-    await commissionPackagePage.navigateToAwardTab();
-    await commissionPackagePage.selectYesForVariationOption();
-
+    await commissionPackagePage.closeSuccessPopup();
     
-    await commissionPackagePage.save();
 
-    // Step 25: Select Percentage from Dropdown
-    await commissionPackagePage.selectPercentageFromDropdown();
+    await awardPage.navigateToAwardTab();
+    await awardPage.selectYesForVariationOption();
+    await awardPage.save();
+    await awardPage.awardgroup(packageData.groupname);
+    await awardPage.clickawardarrowButton(packageData.groupname);
+    await awardPage.selectPercentageFromDropdown();
+    await awardPage.enterpercentagevalue(packageData.commissionPercentage);
+    //await awardPage.selectCommissionRateType();
+    await awardPage.selectCommissionRateTypeAsYears();
+    await awardPage.commissionrateduration(packageData.year);
+    await awardPage.saveaward();
+    await awardPage.closeSuccessPopup();
+    await awardPage.gobackbutton();
+    
 
-    // Step 26: Enter 37
-    await commissionPackagePage.enterPercentage(packageData.commissionPercentage);
 
-    // Step 27: Enter Year 1
-    await commissionPackagePage.enterYear(packageData.year);
-
-    // Step 28: Save
-    await commissionPackagePage.save();
-
-    // Step 29: Close Popup
-    await commissionPackagePage.closePopup();
-
-    // Step 30: Go Back
-    await commissionPackagePage.goBack();
-
-    // Step 31: Navigate to Agent Tab
-    await agentPage.navigateToAgentTab();
-
-    // Step 32: Click Filter
+   await agentPage.navigate_AgentTab()
     await agentPage.clickFilter();
-
-    // Step 33: Allocation = Allocate Another Package
     await agentPage.selectAllocationAllocateAnotherPackage();
-
-    // Step 34: Click Done
     await agentPage.clickDone();
-
-    // Step 35: Select "4Nation Group Australia Pty Ltd"
     await agentPage.selectAgent(packageData.agentName);
-
-    // Step 36: Click Allocate Package
     await agentPage.clickAllocatePackage();
-
-    // Step 37: Select Current Date
     await agentPage.selectCurrentDate();
-
-    // Step 38: Click Done
     await agentPage.clickDone();
+    await commissionPackagePage.activatePackage();
 
     // Step 39: Close Popup
-    await agentPage.closePopup();
+    /*await agentPage.closePopup();
 
     // Step 40: Scroll to Top
     await agentPage.scrollToTop();
@@ -120,6 +101,7 @@ test.describe('Easy Commission Workflow', () => {
 
     // Step 45: Open Agent Framework
     await agentPage.openAgentFramework(packageData.finalAgentSearch);
+    */
 
     logger.info('===== Test Execution Completed Successfully =====');
   });

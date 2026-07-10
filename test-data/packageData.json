@@ -1,9 +1,10 @@
 {
-  "packageName": "Pawan",
+  "packageName": "shubham",
   "description": "Test",
-  "commissionPercentage": 37,
+  "groupname":"Bachelor",
+  "commissionPercentage": 13,
   "year": 1,
   "allocationType": "Allocate Another Package",
-  "agentName": "4Nation Group Australia Pty Ltd",
+  "agentName": "Oceanic Consultants Pvt Ltd",
   "finalAgentSearch": "AT Test"
 }

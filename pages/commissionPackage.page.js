@@ -42,8 +42,7 @@ class CommissionPackagePage {
     logger.info('Selecting current date from calendar');
    //await WaitUtil.click(commissionPackageLocators.dateField(this.page));
    //await DateUtil.selectCurrentDate(this.page);
-   
-const dateField = commissionPackageLocators.dateField(this.page);
+   const dateField = commissionPackageLocators.dateField(this.page);
 
 await DateUtil.selectCurrentDate(dateField);
   }
@@ -61,9 +60,7 @@ await DateUtil.selectCurrentDate(dateField);
    // await this.page.press('Enter');
     //await WaitUtil.waitForVisible(commissionPackageLocators.searchResultByPackageName(this.page, packageName));
   }
-    */
-
-  
+    */ 
 async searchPackage(packageName) {
 const searchBox = commissionPackageLocators.searchInput(this.page);
 await searchBox.fill(packageName);
@@ -156,12 +153,10 @@ async checkUnitSection() {
   async save() {
     logger.info('Saving changes');
     await WaitUtil.click(commissionPackageLocators.saveButton(this.page));
-    await WaitUtil.waitForPageLoad(this.page);
-    await this.closeSuccessPopup();
+    await WaitUtil.waitForPageLoad(this.page); 
   }
 
 async closeSuccessPopup() {
-
     await expect(
         commissionPackageLocators.successMessage(this.page)
     ).toContainText('Data saved successfully');
@@ -169,25 +164,10 @@ async closeSuccessPopup() {
     await WaitUtil.click(
         commissionPackageLocators.closePopupButton(this.page)
     );
-
     await expect(
        commissionPackageLocators.closePopupButton(this.page)
     ).toBeHidden();
 }
-
-  async navigateToAwardTab() {
-    logger.info('Navigating to Award tab');
-    await WaitUtil.click(commissionPackageLocators.awardTab(this.page));
-  }
-
-  async selectYesForVariationOption() {
-  logger.info('Selecting Yes radio button');
-
-  const YesOption = commissionPackageLocators.YesOption(this.page);
-  await YesOption.check();
-  await expect(YesOption).toBeChecked();
-}  
-  
 
   async selectPercentageFromDropdown() {
     logger.info('Selecting Percentage from dropdown');
@@ -215,6 +195,24 @@ async closeSuccessPopup() {
     await WaitUtil.click(commissionPackageLocators.backButton(this.page));
     await WaitUtil.waitForPageLoad(this.page);
   }
+  async activatePackage() {
+
+    logger.info('Validating package is inactive');
+    await expect(commissionPackageLocators.packageStatus(this.page)).toHaveText('Inactive');
+    logger.info('Validating toggle is OFF');
+    const toggle = commissionPackageLocators.activeToggle(this.page);
+    await expect(toggle).not.toBeChecked();
+    logger.info('Clicking Active toggle');
+    await WaitUtil.click(commissionPackageLocators.activeLabel(this.page));
+    logger.info('Validating confirmation popup');
+    await expect(commissionPackageLocators.confirmationPopup(this.page)).toBeVisible();
+    await expect(commissionPackageLocators.confirmationMessage(this.page)).toContainText('Are you sure you want to activate this package again?');
+    logger.info('Confirming activation');
+    await WaitUtil.click(commissionPackageLocators.yesButton(this.page));
+    //await expect(commissionPackageLocators.packageStatus(this.page)).toContainText('Active');
+
+}
+
 }
 
 module.exports = CommissionPackagePage;

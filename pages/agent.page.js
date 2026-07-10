@@ -1,4 +1,5 @@
 const agentLocators = require('./locators/agent.locator');
+const { expect } = require('@playwright/test');
 const WaitUtil = require('../utils/waitUtil');
 const DateUtil = require('../utils/dateUtil');
 const logger = require('../utils/logger');
@@ -18,10 +19,12 @@ async navigateToAgentTab() {
     });
 
     await agents.hover();
-
     await agents.click();
 }
-
+async navigate_AgentTab() {
+   logger.info('Navigate Agent Tab');
+    await WaitUtil.click(agentLocators.agent_Tab(this.page));
+}
 
   async openAgentsDropdown() {
     logger.info('Opening Agents dropdown');
@@ -42,13 +45,21 @@ async navigateToAgentTab() {
 
   async clickFilter() {
     logger.info('Clicking Filter');
-    await WaitUtil.click(agentLocators.filterButton(this.page));
+     await WaitUtil.click(agentLocators.filterButton(this.page));
+     await expect(agentLocators.filterButton(this.page)).toHaveText('Filter');
   }
 
   async selectAllocationAllocateAnotherPackage() {
     logger.info('Selecting Allocation = Allocate Another Package');
-    await WaitUtil.click(agentLocators.allocationDropdown(this.page));
-    await this.page.getByText(/allocate another package/i).first().click();
+    const selectedallocationText = agentLocators.allocationSelectedText(this.page);
+    await expect(selectedallocationText).toBeVisible({timeout: 15000});
+    await expect(selectedallocationText).toHaveText('Not Allocated to any package');
+    await agentLocators.allocationDropdown(this.page).click();
+    await expect(agentLocators.allocatepackageoption(this.page)).toBeVisible({timeout: 10000});
+    await agentLocators.allocatepackageoption(this.page).click();
+    await expect( agentLocators.allocationSelectedText(this.page)).toHaveText('Allocated another package');
+  //await expect(awardLocators.rateTypeHiddenSelect(this.page)).toHaveValue('38');
+   
   }
 
   async clickDone() {
@@ -63,7 +74,8 @@ async navigateToAgentTab() {
 
   async selectAgent(agentName) {
     logger.info(`Selecting agent: ${agentName}`);
-    await this.page.getByText(new RegExp(agentName, 'i')).first().click();
+    //await agentLocators.agentselect(this.page, agentName);
+    await agentLocators.agentselect(this.page, agentName).click();
   }
 
   async clickAllocatePackage() {
@@ -73,7 +85,9 @@ async navigateToAgentTab() {
 
   async selectCurrentDate() {
     logger.info('Selecting current date');
-    await DateUtil.selectCurrentDate(this.page);
+     const DateField = agentLocators.DateField(this.page);
+    await DateUtil.selectCurrentDate(DateField);
+    
   }
 
   async closePopup() {
