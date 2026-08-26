@@ -1,20 +1,50 @@
 trigger:
-- feature
+  branches:
+    include:
+      - feature
+
+pr: none
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '22.x'
-  displayName: 'Install Node.js'
+- checkout: self
+  displayName: 'Checkout repository'
 
-- script: npm ci
+- task: UseNode@1
+  displayName: 'Install Node.js'
+  inputs:
+    version: '22.x'
+
+- script: |
+    node --version
+    npm --version
+    npm ci
   displayName: 'Install dependencies'
 
-- script: npx playwright install --with-deps
+- script: |
+    npx playwright install --with-deps
   displayName: 'Install Playwright browsers'
 
-- script: npx playwright test
+- script: |
+    npx playwright test --workers=1
   displayName: 'Run Playwright tests'
+  env:
+    CI: 'true'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Playwright HTML report'
+  condition: always()
+  inputs:
+    targetPath: '$(System.DefaultWorkingDirectory)/playwright-report'
+    artifact: 'playwright-report'
+    publishLocation: 'pipeline'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Playwright test results'
+  condition: always()
+  inputs:
+    targetPath: '$(System.DefaultWorkingDirectory)/test-results'
+    artifact: 'playwright-test-results'
+    publishLocation: 'pipeline'
