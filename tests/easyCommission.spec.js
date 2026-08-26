@@ -3,16 +3,7 @@ const AwardPage = require('../pages/award.page');
 const { nextButton } = require('../pages/locators/login.locator');
 
 test.describe('Easy Commission Workflow', () => {
-  test('Create and allocate commission package successfully', async ({
-    loginPage,
-    dashboardPage,
-    agentPage,
-    commissionPackagePage,
-    awardPage,
-    users,
-    packageData,
-    logger
-  }) => {
+  test.beforeEach(async ({ loginPage, dashboardPage, users, logger }) => {
     logger.info('===== Test Execution Started =====');
 
     await loginPage.navigateToLogin();
@@ -24,6 +15,20 @@ test.describe('Easy Commission Workflow', () => {
     );
 
     await dashboardPage.validateDashboardLoaded();
+  });
+
+  test.afterEach(async ({ logger }, testInfo) => {
+    if (testInfo.status === testInfo.expectedStatus) {
+      logger.info('===== Test Execution Completed Successfully =====');
+    }
+  });
+
+  test('Create and allocate commission package successfully', async ({
+    agentPage,
+    commissionPackagePage,
+    awardPage,
+    packageData
+  }) => {
     await agentPage.navigateToAgentTab();
     await agentPage.openAgentsDropdown();
     await agentPage.selectEasyCommission();
@@ -40,22 +45,23 @@ test.describe('Easy Commission Workflow', () => {
     await commissionPackagePage.selectCurrentDate();
     await commissionPackagePage.clickDone();
     
+    
+ 
     await commissionPackagePage.searchPackage(packageData.packageName);
     //await commissionPackagePage.waitForLoadState();
    //await commissionPackagePage.openFirstResult();
     await commissionPackagePage.openSearchedPackage(packageData.packageName);
     await commissionPackagePage.clickArrowButton(packageData.packageName);
     await expect(commissionPackagePage.page.locator('#dvHeaderText')).toBeVisible();
-    await commissionPackagePage.uncheckCourses();
+   await commissionPackagePage.uncheckCourses();
     await commissionPackagePage.uncheckNonAwardCourses();
     await commissionPackagePage.uncheckPackagedAwards();
     //await commissionPackagePage.selectVisaVariationYes();
     await commissionPackagePage.checkUnitSection();
     await commissionPackagePage.save();
     await commissionPackagePage.closeSuccessPopup();
-    
 
-    await awardPage.navigateToAwardTab();
+   await awardPage.navigateToAwardTab();
     await awardPage.selectYesForVariationOption();
     await awardPage.save();
     await awardPage.awardgroup(packageData.groupname);
@@ -69,7 +75,7 @@ test.describe('Easy Commission Workflow', () => {
     await awardPage.closeSuccessPopup();
     await awardPage.gobackbutton();
     
-
+    
 
    await agentPage.navigate_AgentTab()
     await agentPage.clickFilter();
@@ -79,6 +85,9 @@ test.describe('Easy Commission Workflow', () => {
     await agentPage.clickAllocatePackage();
     await agentPage.selectCurrentDate();
     await agentPage.clickDone();
+    await agentPage.closePopup();
+    
+    
     await commissionPackagePage.activatePackage();
 
     // Step 39: Close Popup
@@ -102,7 +111,5 @@ test.describe('Easy Commission Workflow', () => {
     // Step 45: Open Agent Framework
     await agentPage.openAgentFramework(packageData.finalAgentSearch);
     */
-
-    logger.info('===== Test Execution Completed Successfully =====');
   });
 });

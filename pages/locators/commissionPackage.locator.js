@@ -35,7 +35,7 @@ arrowButton: (page) =>
   //searchResultByPackageName: (page, packageName) => page.getByText(new RegExp(packageName, 'i')).first()
 
    
-  packageStatus: (page) => page.locator('text=Inactive').first(),
+  packageStatus: (page) => page.locator('#divPackageStatus'),
   activeToggle: (page) => page.locator('#chkPkgActive').first(),
   activeLabel: (page) => page.locator('label[for="chkPkgActive"]'),
   confirmationPopup: (page) => page.locator('#modalCommConfirmation'),

@@ -14,6 +14,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: 'tests',
+ // retries :1,
 
  /* ✅ Global timeout for each test */
   timeout: 40000, // 40 seconds
@@ -29,20 +30,33 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  //retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  /* 'open: never' — auto-opening a live report server on every failed run
+     leaves a process bound to port 9323, which collides (EADDRINUSE) if the
+     previous run's server is still alive when the next run starts. View
+     results on demand instead via `npm run report`. */
+  reporter: [['html', { open: 'never', outputFolder: 'reports/html' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
     // baseURL: 'http://localhost:3000',
 
+    /* ✅ Per-action timeout, independent of the global test timeout.
+       Without this, a stuck click/fill retries against the full 40s test
+       timeout, which masks the real actionability error ("not stable",
+       "not visible", etc.) behind a generic "Test timeout exceeded". */
+    actionTimeout: 15000,
+
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     launchOptions: {
-    args: ['--start-maximized']
+    /* --force-device-scale-factor=1 neutralizes Windows display scaling
+       (125%/150% etc.), which otherwise makes Chromium render as if zoomed
+       and confuses Playwright's viewport/scroll actionability checks. */
+    args: ['--start-maximized', '--force-device-scale-factor=1', '--high-dpi-support=1']
     },
  viewport: null
  },
@@ -52,6 +66,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+
+
       //use: { ...devices['Desktop Chrome'] },
     },
 

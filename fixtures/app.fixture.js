@@ -7,9 +7,11 @@ const DashboardPage = require('../pages/dashboard.page');
 const AgentPage = require('../pages/agent.page');
 const CommissionPackagePage = require('../pages/commissionPackage.page');
 const AwardPage = require('../pages/award.page');
+const AdmissionPage = require('../pages/admission.page');
+const StudentAddressPage = require('../pages/studentAddress.page');
 
 const logger = require('../utils/logger');
-const { getEnvConfig, getUsers, getPackageData } = require('../utils/configReader');
+const { getEnvConfig, getUsers, getPackageData, getStudentData } = require('../utils/configReader');
 
 function sanitizeFileName(name) {
   return name.replace(/[<>:"/\\|?*]+/g, '_').replace(/\s+/g, '_');
@@ -28,6 +30,10 @@ exports.test = base.test.extend({
     await use(getPackageData());
   },
 
+  studentData: async ({}, use) => {
+    await use(getStudentData());
+  },
+
   logger: async ({}, use) => {
     await use(logger);
   },
@@ -36,27 +42,30 @@ exports.test = base.test.extend({
     logger.info(`Starting test: ${testInfo.title}`);
     await use(page);
 
-    if (testInfo.status !== testInfo.expectedStatus) {
-      const folderPath = path.join(process.cwd(), 'reports', 'failure-screenshots');
-      if (!fs.existsSync(folderPath)) {
-        fs.mkdirSync(folderPath, { recursive: true });
-      }
+    const passed = testInfo.status === testInfo.expectedStatus;
+    const folderName = passed ? 'passed-screenshots' : 'failure-screenshots';
+    const folderPath = path.join(process.cwd(), 'reports', folderName);
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
+    }
 
-      const screenshotPath = path.join(
-        folderPath,
-        `${sanitizeFileName(testInfo.title)}.png`
-      );
+    const screenshotPath = path.join(
+      folderPath,
+      `${sanitizeFileName(testInfo.title)}.png`
+    );
 
-      await page.screenshot({ path: screenshotPath, fullPage: true });
-      await testInfo.attach('failure-screenshot', {
-        path: screenshotPath,
-        contentType: 'image/png'
-      });
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    await testInfo.attach(passed ? 'passed-screenshot' : 'failure-screenshot', {
+      path: screenshotPath,
+      contentType: 'image/png'
+    });
 
+    if (passed) {
+      logger.info(`Test passed: ${testInfo.title}`);
+      logger.info(`Passed screenshot saved: ${screenshotPath}`);
+    } else {
       logger.error(`Test failed: ${testInfo.title}`);
       logger.error(`Failure screenshot saved: ${screenshotPath}`);
-    } else {
-      logger.info(`Test passed: ${testInfo.title}`);
     }
   },
 
@@ -78,6 +87,14 @@ exports.test = base.test.extend({
 
   awardPage: async ({ page }, use) => {
     await use(new AwardPage(page));
+  },
+
+  admissionPage: async ({ page }, use) => {
+    await use(new AdmissionPage(page));
+  },
+
+  studentAddressPage: async ({ page }, use) => {
+    await use(new StudentAddressPage(page));
   }
 });
 

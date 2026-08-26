@@ -195,7 +195,7 @@ async closeSuccessPopup() {
     await WaitUtil.click(commissionPackageLocators.backButton(this.page));
     await WaitUtil.waitForPageLoad(this.page);
   }
-  async activatePackage() {
+ /* async activatePackage() {
 
     logger.info('Validating package is inactive');
     await expect(commissionPackageLocators.packageStatus(this.page)).toHaveText('Inactive');
@@ -209,9 +209,55 @@ async closeSuccessPopup() {
     await expect(commissionPackageLocators.confirmationMessage(this.page)).toContainText('Are you sure you want to activate this package again?');
     logger.info('Confirming activation');
     await WaitUtil.click(commissionPackageLocators.yesButton(this.page));
-    //await expect(commissionPackageLocators.packageStatus(this.page)).toContainText('Active');
+    */
+    
+   // await expect(commissionPackageLocators.packageStatus(this.page)).toContainText('Active');
 
+
+async activatePackage() {
+
+    logger.info('Verify toggle is OFF' );
+
+    const toggle = commissionPackageLocators.activeToggle(this.page);
+    await expect(toggle).not.toBeChecked();
+    logger.info('Verify package status is Inactive');
+    await expect(commissionPackageLocators.packageStatus(this.page)).toContainText('Inactive');
+    logger.info( 'Click Active toggle');
+    await WaitUtil.click(commissionPackageLocators.activeLabel(this.page ) );
+
+    logger.info('Verify confirmation popup');
+    await expect(commissionPackageLocators.confirmationPopup( this.page)).toBeVisible();
+
+    await expect(commissionPackageLocators.confirmationMessage(this.page) ).toContainText(  'Are you sure you want to activate this package again?' );
+
+    logger.info( 'Click Yes');
+
+    await WaitUtil.click(commissionPackageLocators.yesButton( this.page ));
+
+    //
+    // Wait for status update
+    //
+    await expect(toggle)
+        .toBeChecked({
+            timeout: 15000
+        });
+
+    await expect(
+        commissionPackageLocators.packageStatus(
+            this.page
+        )
+    ).toContainText(
+        'Active',
+        {
+            timeout: 15000
+        }
+    );
+
+    logger.info(
+        'Package activated successfully'
+    );
 }
+
 
 }
 

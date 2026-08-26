@@ -5,11 +5,12 @@ class WaitUtil {
 
   static async click(locator, timeout = 12000) {
     await locator.waitFor({ state: 'visible', timeout });
+    await locator.scrollIntoViewIfNeeded();
     await locator.click();
-  
   }
    static async fill(locator, value, timeout = 12000) {
     await locator.waitFor({ state: 'visible', timeout });
+    await locator.scrollIntoViewIfNeeded();
     await locator.fill(value);
   }
 
@@ -22,6 +23,9 @@ class WaitUtil {
     await locator.waitFor({ state: 'hidden', timeout });
   }
 
+
+  
+
  /* static async scrollIntoView(locator) {
     await locator.scrollIntoViewIfNeeded();
   }
@@ -31,6 +35,7 @@ class WaitUtil {
     await dropdownLocator.waitFor({ state: 'visible', timeout: 12000 });
     await dropdownLocator.selectOption({ label: visibleText });
   }
+
 }
 
 

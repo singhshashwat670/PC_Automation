@@ -42,9 +42,14 @@ function getPackageData() {
   return readJson('test-data/packageData.json');
 }
 
+function getStudentData() {
+  return readJson('test-data/studentData.json');
+}
+
 module.exports = {
   readJson,
   getEnvConfig,
   getUsers,
-  getPackageData
+  getPackageData,
+  getStudentData
 };
