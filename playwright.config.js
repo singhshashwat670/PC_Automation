@@ -41,32 +41,26 @@ export default defineConfig({
   reporter: [['html', { open: 'never', outputFolder: 'reports/html' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
-
-    /* ✅ Per-action timeout, independent of the global test timeout.
-       Without this, a stuck click/fill retries against the full 40s test
-       timeout, which masks the real actionability error ("not stable",
-       "not visible", etc.) behind a generic "Test timeout exceeded". */
-    actionTimeout: 15000,
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
-    launchOptions: {
-    /* --force-device-scale-factor=1 neutralizes Windows display scaling
-       (125%/150% etc.), which otherwise makes Chromium render as if zoomed
-       and confuses Playwright's viewport/scroll actionability checks. */
-    args: ['--start-maximized', '--force-device-scale-factor=1', '--high-dpi-support=1']
-    },
- viewport: null
- },
+  actionTimeout: 15000,
+  trace: 'on-first-retry',
+  viewport: {
+    width: 1920,
+    height: 1080
+  }
+},
 
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
+       use: { ...devices['Desktop Chrome'] ,
+       launchOptions: {
 
+        args: ['--start-maximized','--force-device-scale-factor=1','--high-dpi-support=1']
+
+}
+       }
 
       //use: { ...devices['Desktop Chrome'] },
     },
