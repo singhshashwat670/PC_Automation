@@ -1,0 +1,67 @@
+trigger: none
+
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- checkout: self
+  displayName: 'Checkout repository'
+
+- task: UseNode@1
+  displayName: 'Install Node.js'
+  inputs:
+    version: '22.x'
+
+- script: |
+    node --version
+    npm --version
+    npm ci
+  displayName: 'Install dependencies'
+
+- script: |
+    npx playwright install --with-deps
+  displayName: 'Install Playwright browsers'
+
+- script: |
+    npx playwright test tests/admission.spec.js --workers=1
+  displayName: 'Run Playwright tests - Admission'
+  env:
+    CI: 'true'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Playwright HTML report'
+  condition: always()
+  continueOnError: true
+  inputs:
+    targetPath: '$(System.DefaultWorkingDirectory)/reports/html'
+    artifact: 'playwright-html-report'
+    publishLocation: 'pipeline'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish passed screenshots'
+  condition: always()
+  continueOnError: true
+  inputs:
+    targetPath: '$(System.DefaultWorkingDirectory)/reports/passed-screenshots'
+    artifact: 'passed-screenshots'
+    publishLocation: 'pipeline'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish failure screenshots'
+  condition: always()
+  continueOnError: true
+  inputs:
+    targetPath: '$(System.DefaultWorkingDirectory)/reports/failure-screenshots'
+    artifact: 'failure-screenshots'
+    publishLocation: 'pipeline'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Playwright test results'
+  condition: always()
+  continueOnError: true
+  inputs:
+    targetPath: '$(System.DefaultWorkingDirectory)/test-results'
+    artifact: 'playwright-test-results'
+    publishLocation: 'pipeline'
