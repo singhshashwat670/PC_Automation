@@ -46,10 +46,15 @@ function getStudentData() {
   return readJson('test-data/studentData.json');
 }
 
+function getTrainingData() {
+  return readJson('test-data/trainingData.json');
+}
+
 module.exports = {
   readJson,
   getEnvConfig,
   getUsers,
   getPackageData,
-  getStudentData
+  getStudentData,
+  getTrainingData
 };

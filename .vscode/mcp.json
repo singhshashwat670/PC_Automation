@@ -1,8 +1,75 @@
 {
-  "servers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    }
-  }
+	"servers": {
+		"playwright": {
+			"command": "npx",
+			"args": [
+				"@playwright/mcp@latest"
+			],
+			"type": "stdio"
+		},
+		"github": {
+			"type": "http",
+			"url": "https://api.githubcopilot.com/mcp/"
+		},
+		"filesystem": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"@modelcontextprotocol/server-filesystem",
+				"${workspaceFolder}"
+			],
+			"type": "stdio"
+		},
+		"excel": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"@negokaz/excel-mcp-server"
+			],
+			"env": {
+				"EXCEL_MCP_PAGING_CELLS_LIMIT": "4000"
+			},
+			"type": "stdio"
+		},
+		"mssql": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"mssql-mcp-server"
+			],
+			"env": {
+				"MSSQL_CONNECTION_STRING": "${input:mssqlConnectionString}"
+			},
+			"type": "stdio"
+		},
+		"api": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"mcp-fetch"
+			],
+			"type": "stdio"
+		},
+		"git": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"@cyanheads/git-mcp-server@latest"
+			],
+			"env": {
+				"GIT_BASE_DIR": "${workspaceFolder}",
+				"GIT_AUTHOR_NAME": "Shashwat Singh",
+				"GIT_AUTHOR_EMAIL": "shashwat.s@ascentone.com"
+			},
+			"type": "stdio"
+		}
+	},
+	"inputs": [
+		{
+			"id": "mssqlConnectionString",
+			"type": "promptString",
+			"description": "SQL Server connection string, e.g. Data Source=YOUR_SERVER;Initial Catalog=YOUR_DB;Integrated Security=SSPI;TrustServerCertificate=True;",
+			"password": true
+		}
+	]
 }

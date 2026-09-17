@@ -1,5 +1,0 @@
-{
-  "env": "preprod",
-  "baseURL": "",
-  "timeout": 30000
-}

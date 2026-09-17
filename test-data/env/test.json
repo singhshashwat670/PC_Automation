@@ -1,5 +1,5 @@
 {
   "env": "test",
-  "baseURL": "http://oca-azure-test:8401/Login.aspx",
+  "baseURL": "https://testv5.ascentone.org/login.aspx",
   "timeout": 30000
 }

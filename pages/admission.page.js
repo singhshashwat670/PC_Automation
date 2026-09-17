@@ -14,11 +14,25 @@ class AdmissionPage {
     logger.info('Navigating: Education Providers > Applications > Admissions');
 
     const educationProvidersMenu = admissionLocators.educationProvidersMenu(this.page);
-     //await educationProvidersMenu.waitFor({ state: 'visible'});
-    await educationProvidersMenu.hover();
-    await educationProvidersMenu.click();
+    const applicationsItem = admissionLocators.applicationsMenuItem(this.page);
+    await WaitUtil.waitForOverlayToClear(this.page).catch(() => {});
 
-    await WaitUtil.click(admissionLocators.applicationsMenuItem(this.page));
+    // The hover-driven flyout is flaky in automation (jQuery UI overlay can still be
+    // fading, or the hover simply doesn't register the first time) - retry until the
+    // "Applications" item actually renders instead of failing on one missed hover.
+    let opened = false;
+    for (let attempt = 1; attempt <= 3 && !opened; attempt++) {
+      await educationProvidersMenu.hover();
+      await educationProvidersMenu.click().catch(() => {});
+      try {
+        await applicationsItem.waitFor({ state: 'visible', timeout: 8000 });
+        opened = true;
+      } catch (err) {
+        if (attempt === 3) throw err;
+      }
+    }
+
+    await WaitUtil.click(applicationsItem);
     await WaitUtil.click(admissionLocators.admissionsMenuItem(this.page));
     await WaitUtil.waitForPageLoad(this.page);
   }

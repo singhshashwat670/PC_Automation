@@ -1,0 +1,10 @@
+{
+  "program": {
+    "namePrefix": "Playwright Automated Program",
+    "description": "Automated training program created by Playwright.",
+    "estimatedTimeMinutes": 30,
+    "allowTopicGroupCreation": false,
+    "assessmentRequired": true,
+    "allowDownload": false
+  }
+}

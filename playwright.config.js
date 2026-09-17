@@ -2,150 +2,85 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
-
-/**
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
+  // Directory containing the test files
   testDir: 'tests',
- // retries :1,
 
- /* ✅ Global timeout for each test */
+  // Maximum time (ms) a single test can run before it is marked as failed
   timeout: 40000, // 40 seconds
 
-  /* ✅ Expect timeout  */
+  // Maximum time (ms) each expect() assertion can wait before failing
   expect: {
     timeout: 10000 // 10 seconds
   },
 
-
-  /* Run tests in files in parallel */
+  // Run test files in parallel for faster execution
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+
+  // Fail the build on CI if test.only was accidentally left in the source code
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  //retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
+
+  // Retry failed tests only on CI (helps with flaky tests in pipelines)
+  retries: process.env.CI ? 2 : 0,
+
+  // Limit to a single worker on CI to avoid resource contention; use default locally
   workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  /* 'open: never' — auto-opening a live report server on every failed run
-     leaves a process bound to port 9323, which collides (EADDRINUSE) if the
-     previous run's server is still alive when the next run starts. View
-     results on demand instead via `npm run report`. */
+
+  // Generate an HTML report and never auto-open it after a run
   reporter: [['html', { open: 'never', outputFolder: 'reports/html' }]],
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+
   use: {
-  actionTimeout: 15000,
-  trace: 'on-first-retry',
-  viewport: {
-    width: 1920,
-    height: 1080
-  }
-},
+    // Maximum time (ms) for each action (click, fill, etc.)
+    actionTimeout: 15000,
 
+    // Capture a trace only when a test is retried, to help debug failures
+    trace: 'on-first-retry',
 
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-       use: { ...devices['Desktop Chrome'] ,
-       launchOptions: {
+    // Always capture a screenshot after each test
+    screenshot: 'on',
 
-        args: ['--start-maximized','--force-device-scale-factor=1','--high-dpi-support=1']
-
-}
-       }
-
-      //use: { ...devices['Desktop Chrome'] },
-    },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
-  ],
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
-});
-
-/*
-const { defineConfig, devices } = require('@playwright/test');
-const { getEnvConfig } = require('./utils/configReader');
-
-const envConfig = getEnvConfig();
-
-module.exports = defineConfig({
-  testDir: './tests',
-  timeout: 90 * 1000,
-  expect: {
-    timeout: 15 * 1000
+    // Default browser viewport size
+    viewport: {
+      width: 1920,
+      height: 1080
+    }
   },
-  fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : undefined,
-  reporter: [
-    ['list'],
-    ['html', { outputFolder: 'reports/html', open: 'never' }],
-    ['json', { outputFile: 'reports/results.json' }],
-    ['junit', { outputFile: 'reports/results.xml' }]
-  ],
-  use: {
-    baseURL: envConfig.baseURL,
-    browserName: 'chromium',
-    headless: true,
-    actionTimeout: 20 * 1000,
-    navigationTimeout: 30 * 1000,
-    screenshot: 'only-on-failure',
-    trace: 'retain-on-failure',
-    video: 'retain-on-failure',
-    ignoreHTTPSErrors: true,
-    viewport: { width: 1536, height: 864 }
-  },
-  outputDir: 'reports/artifacts',
+
+  // Configure projects for major browsers
   projects: [
     {
       name: 'chromium',
       use: {
-        ...devices['Desktop Chrome']
+        browserName: 'chromium',
+
+        // Fixed viewport on CI; let the browser use its native window size locally
+        viewport: process.env.CI
+          ? { width: 1920, height: 1080 }
+          : null,
+
+        // Launch maximized locally for easier debugging; use CI defaults on CI
+        launchOptions: process.env.CI
+          ? {}
+          : {
+              args: ['--start-maximized']
+            }
+      }
+    },
+
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox']
+      }
+    },
+
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari']
       }
     }
   ]
 });
-*/

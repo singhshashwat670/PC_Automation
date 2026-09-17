@@ -21,10 +21,20 @@ const studentAddressLocators = {
   // Assumption: modal exposes role="dialog" (common in modern component libraries).
   // Falls back to a class-based lookup if the real markup differs - verify with DevTools.
  // addAddressModal: (page) => page.getByRole('dialog').filter({ hasText: 'Add Address' }).or(page.locator('.modal, .modal-content').filter({ hasText: 'Add Address' })).first(),
-addressCardHeading: (page) => page.getByText('Address', { exact: true }),
+// Scoped to #tileContainer (the landing tile grid) - "Address" etc. also repeat in the
+// side-nav stepper and each section's own footer "Previous/Next" links, which an
+// unscoped getByText collides with once enough sections have been visited in one run.
+addressCardHeading: (page) => page.locator('#tileContainer').getByText('Address', { exact: true }),
 addAddressButton: (page) => page.locator('a.clsmanage[onclick*="InitAddress"]'),
- studentNameText: (page, studentName) => page.locator('div.info-name').filter({ hasText: studentName }),
+ // Every profile section (Address, Passport, Academics, ...) is pre-rendered in the DOM
+ // simultaneously and toggled via a "d-none" class rather than mounted/unmounted, so an
+ // unscoped match repeats once per section visited this session; :visible narrows to
+ // whichever single section is currently on screen.
+ studentNameText: (page, studentName) => page.locator('div.info-name:visible').filter({ hasText: studentName }),
   addnewAddress: (page) => page.locator('a[onclick="AddNewAddress(this);"]'),
+  // The main applicant's row is the only "editAddress" trigger with data-ismain="1";
+  // it opens the exact same "Add Address" modal, pre-filled, when an address already exists.
+  mainApplicantEditAddressLink: (page) => page.locator('a[onclick="editAddress(this);"][data-ismain="1"]'),
  addAddressModal: (page) => page.getByRole('heading', { name: 'Add Address' }) ,
 countrydropdown: (page) => page.locator('#select2-ddl_per_cntry-container'),
  statedropdown: (page) => page.locator('#select2-ddl_per_state-container'),
@@ -40,18 +50,24 @@ countrydropdown: (page) => page.locator('#select2-ddl_per_cntry-container'),
  select2Option: (page, selectId, text) =>
    page.locator(`li.select2-results__option[id^="select2-${selectId}-result"]`).filter({ hasText: text }),
  addressLine1Input: (page) => page.locator('#txtAddressLine1'),
+ // The "My Address" modal's real address-line-1 field id (verified against the live DOM);
+ // kept separate from addressLine1Input above since that one is also reused by the
+ // (separately unverified) Employment address flow under a different field id.
+ residentialAddressLine1Input: (page) => page.locator('#txt_per_add1'),
  postcodeInput: (page) => page.locator('#txt_per_postcode'),
  durationInput: (page) => page.locator('#txt_dur_liv'),
  durationdropdown: (page) => page.locator('#select2-ddl_dur_liv_type-container'),
  //residentialTab: (modal) => modal.getByText('Residential', { exact: true }),
  // postalTab: (modal) => modal.getByText('Postal', { exact: true }),
   addressDoneButton: (page) =>page.locator('#btn_saveAddrss') ,
-  residentialAddressValue: (page) => page.locator('div.info-label:text-is("Residential Address") + div.info-name'),
+  // .first() scopes to the main applicant's card, which always renders first; a shared/
+  // persistent student otherwise has one "Residential Address" row per family member too.
+  residentialAddressValue: (page) => page.locator('div.info-label:text-is("Residential Address") + div.info-name').first(),
   navigateBackButton: (page) => page.locator('#btnMainBack'),
 
   // ---------- Add passport details ----------
  
-  passportCardHeading: (page) => page.locator('div').filter({ hasText: 'Passport' }).first(),
+  passportCardHeading: (page) => page.locator('#tileContainer').getByText('Passport', { exact: true }),
     addpassportButton: (page) => page.locator('a.clsmanage[onclick*="InitPassport"]'),
   addnewpassport: (page) => page.locator('button[onclick="LoadPopPass(this);"]'),
    addpassportModal: (page) => page.getByRole('heading', { name: 'Add passport' }) ,
@@ -64,7 +80,7 @@ dateofexpiryInput: (page) => page.locator('#dtpass_DOE'),
 
  // ---------- Add academicdetails ----------
 
- academicCardHeading: (page) => page.getByText('Academics', { exact: true }),
+ academicCardHeading: (page) => page.locator('#tileContainer').getByText('Academics', { exact: true }),
  addacademicButton: (page) => page.locator('a.clsmanage[onclick*="InitAcademics"]'),
  studyAustraliaNoRadio: (page) => page.locator('#pnl_is_study_aust').getByRole('radio', { name: 'No', exact: true }),
  addQualificationButton: (page) => page.getByRole('button', { name: 'Add qualification' }),
@@ -94,11 +110,10 @@ highestQualificationRadio: (page, answer) =>page.locator('label[for="radio12"]')
   academicsForm: (page) => page.locator('#academicForm'),
   employmentForm: (page) => page.locator('#employmentForm'),
   languageabilityForm: (page) => page.locator('#languageAbilityForm'),
-  familymembersForm: (page) => page.locator('#familyMembersForm'),
 
   // ---------- Add Employment modal ----------
 
-  employmentCardHeading: (page) => page.getByText('Employment', { exact: true }),
+  employmentCardHeading: (page) => page.locator('#tileContainer').getByText('Employment', { exact: true }),
   addemploymentButton: (page) => page.locator('a.clsmanage[onclick*="InitEmployment"]'),
   employmentHistoryYesRadio: (page) => page.locator('#eduEmpY'),
   employmentHistoryYesLabel: (page) => page.locator('label[for="eduEmpY"]'),
@@ -126,53 +141,180 @@ highestQualificationRadio: (page, answer) =>page.locator('label[for="radio12"]')
  
 
   // ---------- Language Ability card & Add English Test ----------
-  // NOTE: as with the Employment section above, the real markup was not available for
-  // inspection (only screenshots) - locators below are best-effort, text/role-scoped
-  // where the screenshot gives an exact label, and PLACEHOLDER ids elsewhere. Verify
-  // against DevTools before relying on these in a real run.
-  languageAbilityCardHeading: (page) => page.getByText('Language Ability', { exact: true }),
-  addlanguageabilityButton: (page) => page.locator('a.clsmanage[onclick*="InitLanguage"]'),
+  // Verified against the real DOM (StudentTileDetails.aspx) rather than screenshots.
+  languageAbilityCardHeading: (page) => page.locator('#tileContainer').getByText('Language Ability', { exact: true }),
+  addlanguageabilityButton: (page) => page.locator('a.clsmanage[onclick*="InitEnglish"]'),
   englishAbilityQuestionHeading: (page) =>
     page.getByText('Please select the applicable option to confirm English language ability', { exact: true }),
-  // Each "option" toggle is scoped from the row of text it sits next to, since these
-  // are independent switches (not a mutually-exclusive radio group) and no id is known.
-  englishAbilityToggle: (page, labelText) =>
-    page.locator('div').filter({ hasText: labelText }).locator('input[type="checkbox"]').first(),
 
-  noEnglishAbilityAddedText: (page) => page.getByText('No English ability added yet.', { exact: true }),
-  addEnglishTestButton: (page) => page.getByRole('button', { name: 'Add English Test', exact: true }),
-  // Dropdown menu is identified by containing several of its known option labels together,
-  // since it has no distinguishing id/role of its own in the screenshot.
-  addEnglishTestDropdownMenu: (page) =>
-    page.locator('ul, div').filter({ hasText: 'DUOLINGO' }).filter({ hasText: 'IELTS' }).first(),
+  // Each option is an independent on/off switch (not a mutually-exclusive radio group),
+  // each with its own stable input id - e.g. "has_taken_eng_tests", "fam_has_taken_eng_tests".
+  englishAbilityToggleInput: (page, toggleId) => page.locator(`#${toggleId}`),
+  englishAbilityToggleLabel: (page, toggleId) => page.locator(`label[for="${toggleId}"]`),
+
+  // "Add English Test" renders as a Bootstrap dropdown button, populated for the main
+  // applicant only after at least one ability toggle above is switched on.
+  englishCardsContainer: (page) => page.locator('#dv_english_cards'),
+  addEnglishTestButton: (page) => studentAddressLocators.englishCardsContainer(page).locator('a[data-toggle="dropdown"]').first(),
   addEnglishTestDropdownOption: (page, testType) =>
-    studentAddressLocators.addEnglishTestDropdownMenu(page).getByText(testType, { exact: true }),
+    studentAddressLocators.englishCardsContainer(page)
+      .locator('.dropdown-item')
+      .filter({ hasText: new RegExp(`^${testType}$`, 'i') }),
 
   // Row in the "List language tests undertaken by the applicants" table, after an entry
-  // has been saved (via the modal below, or directly for non-modal options).
+  // has been saved.
   languageTestRow: (page, testType) => page.locator('tr').filter({ hasText: testType }).first(),
   languageTestAttachButton: (page, testType) =>
     studentAddressLocators.languageTestRow(page, testType).getByRole('button', { name: 'Attach', exact: true }),
 
-  // ---------- Add English test modal (graded tests: IELTS/PTE/TOEFL/...) ----------
-  // Heading reads "Add English test - {TestType}" (e.g. "Add English test - IELTS").
-  addEnglishTestModal: (page) =>
-    page.locator('div.modal, [role="dialog"]').filter({ has: page.getByRole('heading', { name: /^Add English test/ }) }),
-  // TYPE renders as a plain native <select> (options list with no search box), unlike the
-  // select2 country/state dropdowns elsewhere in this app - use selectOption(), not click+search.
-  englishTestTypeDropdown: (page) => studentAddressLocators.addEnglishTestModal(page).locator('select').first(),
-  englishTestDateInput: (page) =>
-    studentAddressLocators.addEnglishTestModal(page).locator('div').filter({ hasText: 'TEST DATE' }).locator('input').first(),
-  englishTestReportNumberInput: (page) =>
-    studentAddressLocators.addEnglishTestModal(page).locator('div').filter({ hasText: 'TEST REPORT NUMBER' }).locator('input').first(),
-  englishTestModuleRow: (page, moduleName) =>
-    studentAddressLocators.addEnglishTestModal(page).locator('tr').filter({ hasText: moduleName }).first(),
-  englishTestModuleScoreInput: (page, moduleName) =>
-    studentAddressLocators.englishTestModuleRow(page, moduleName).locator('input').first(),
-  englishTestModalDoneButton: (page) =>
-    studentAddressLocators.addEnglishTestModal(page).getByRole('button', { name: 'Done', exact: true }),
-  englishTestModalCancelButton: (page) =>
-    studentAddressLocators.addEnglishTestModal(page).getByRole('button', { name: 'Cancel', exact: true }),
+  // ---------- Add English test modal: DUOLINGO ----------
+  // Heading reads "Add English test - DUOLINGO"; this type has its own modal/field ids,
+  // separate from every other (graded) test type below.
+  addEnglishTestDuolingoModal: (page) => page.locator('#addEngtestDulingo'),
+  duolingoTestDateInput: (page) => page.locator('#dt_duolingo'),
+  duolingoReportNumberInput: (page) => page.locator('#txtduolingo'),
+  // Module score field ids are not a consistent pattern (mixed case, "verall" typo for
+  // "overall") - callers look the real id up by friendly key, see DUOLINGO_SCORE_FIELDS
+  // in studentAddress.page.js, rather than deriving it here.
+  duolingoModuleScoreInput: (page, fieldId) => page.locator(`#${fieldId}`),
+  duolingoDoneButton: (page) => page.locator('#_saveduolingo'),
+
+  // ---------- Add English test modal: graded tests (IELTS/PTE/TOEFL/OET/CAE/LANGUAGECERT) ----------
+  // Heading reads "Add English test - {TestType}"; every graded type shares this one
+  // modal/id set (only the TYPE dropdown options and heading text change per type).
+  addEnglishTestGradedModal: (page) => page.locator('#addEngtest'),
+  gradedTestDateInput: (page) => page.locator('#_englishEFrm'),
+  gradedTestReportNumberInput: (page) => page.locator('#txtenglishrptNo'),
+  gradedModuleScoreInput: (page, fieldId) => page.locator(`#${fieldId}`),
+  gradedTestDoneButton: (page) => page.locator('#_saveenglish'),
+
+  // ---------- Family members card & Add family member ----------
+  // Verified against the real DOM (StudentTileDetails.aspx, "My family members" section).
+  familyMembersCardHeading: (page) => page.locator('#tileContainer').getByText('Family members', { exact: true }),
+  addfamilymembersButton: (page) => page.locator('a.clsmanage[onclick*="InitFamily"]'),
+  hasFamilyMembersYesRadio: (page) => page.locator('#rdoIsFamMember'),
+  hasFamilyMembersYesLabel: (page) => page.locator('label[for="rdoIsFamMember"]'),
+  addFamilyMemberButton: (page) => page.locator('#btnSaveFamMember'),
+  addFamilyMemberModal: (page) => page.getByRole('heading', { name: 'Add family member' }),
+
+  familyRelationshipDropdown: (page) => page.locator('#select2-ddlRelationship_famV2-container'),
+  familyNationalityDropdown: (page) => page.locator('#select2-ddlCountry_famV2-container'),
+  familyTitleDropdown: (page) => page.locator('#select2-ddlTitle_famV2-container'),
+  familyGivenNameInput: (page) => page.locator('#txtfirst_name_famV2'),
+  familyMiddleNameInput: (page) => page.locator('#txtmiddle_name_famV2'),
+  familyFamilyNameInput: (page) => page.locator('#txtlast_name_famV2'),
+  familyGenderDropdown: (page) => page.locator('#select2-ddlGender_famV2-container'),
+  familyDobInput: (page) => page.locator('#txtdob_famV2'),
+  // Marital status "Married" reveals this date field (showhidedtfmV2 onchange handler); stays hidden for "Single".
+  familyMaritalStatusDropdown: (page) => page.locator('#select2-ddlMaritalStatus_famV2-container'),
+  familyMarriageDateInput: (page) => page.locator('#txtmarriage_date_famV2'),
+  familyEmailInput: (page) => page.locator('#txtFamEmail'),
+  familyMobileCountryDropdown: (page) => page.locator('#select2-ddlFamMobileCountry-container'),
+  familyMobileInput: (page) => page.locator('#txtFamMobile'),
+  // State list is populated via AJAX (bindStateByCountryId) once a country is selected.
+  familyCountryDropdown: (page) => page.locator('#select2-ddlFamilyCountry-container'),
+  familyStateDropdown: (page) => page.locator('#select2-ddlFamilyState-container'),
+  familyCityInput: (page) => page.locator('#txtFamCity'),
+  familyStreet1Input: (page) => page.locator('#txtFamStreet1'),
+  familyStreet2Input: (page) => page.locator('#txtFamStreet2'),
+  familyPostcodeInput: (page) => page.locator('#txtFamPostCode'),
+  familyTravelWithMainToggleLabel: (page) => page.locator('label[for="chkIsTravelWithMain"]'),
+  familyMemberDoneButton: (page) => page.locator('button[onclick="saveNewMemberDetails();"]'),
+  familyMemberRow: (page, familyMemberName) => page.locator('#tblFamilyListV2 tbody tr').filter({ hasText: familyMemberName }),
+
+  // ---------- Visa history card & Add visa application ----------
+  // Verified against the real DOM (StudentTileDetails.aspx, "List and manage visa history" section).
+  visaHistoryCardHeading: (page) => page.locator('#tileContainer').getByText('Visa history', { exact: true }),
+  addvisahistoryButton: (page) => page.locator('a.clsmanage[onclick*="InitVisaProfile"]'),
+
+  visaAppliedYesLabel: (page) => page.locator('label[for="eduVisaY"]'),
+  visaAppliedNoLabel: (page) => page.locator('label[for="eduVisaN"]'),
+  visaRefusedYesLabel: (page) => page.locator('label[for="eduRefusedVisaY"]'),
+  visaRefusedNoLabel: (page) => page.locator('label[for="eduRefusedVisaN"]'),
+  visaBreachedYesLabel: (page) => page.locator('label[for="eduBreachedVisaY"]'),
+  visaBreachedNoLabel: (page) => page.locator('label[for="eduBreachedVisaN"]'),
+  saveVisaQuestionsButton: (page) => page.locator('a[onclick="UpdateVisaQuestions();"]'),
+
+  // "vis_0" is the main applicant's fixed slot; family members get their own dynamic slot ids.
+  addVisaApplicationButton: (page) => page.locator('#btnAddVisa_0'),
+  addVisaApplicationModal: (page) => page.getByRole('heading', { name: 'Add visa application' }),
+  mainApplicantVisaApplicationsCount: (page) =>
+    page.locator('#vis_0 .info-vr').filter({ hasText: 'VISA Applications' }).locator('.info-name'),
+
+  visaCountryDropdown: (page) => page.locator('#select2-ddl_vis_countryV2-container'),
+  visaTypeDropdown: (page) => page.locator('#select2-ddl_vis_typeV2-container'),
+  visaApplicationDateInput: (page) => page.locator('#vis_app_dateV2'),
+  visaDecisionDateInput: (page) => page.locator('#vis_decision_dateV2'),
+  visaOutcomeDropdown: (page) => page.locator('#select2-ddl_vis_outcomV2-container'),
+  // Only rendered once Application Outcome is "Granted".
+  visaGrantNumberInput: (page) => page.locator('#txt_vis_grantNumber'),
+  visaValidityStartDateInput: (page) => page.locator('#txt_vis_his_start_date'),
+  visaValidityEndDateInput: (page) => page.locator('#txt_vis_his_end_date'),
+  visaApplicationDoneButton: (page) => page.locator('button[onclick="SaveVisHisDetails();"]'),
+
+  // ---------- Countries visited card & Add details ----------
+  // Verified against the real DOM (StudentTileDetails.aspx, "List all countries you have visited" section).
+  countriesVisitedCardHeading: (page) => page.locator('#tileContainer').getByText('Countries visited', { exact: true }),
+  addcountriesvisitedButton: (page) => page.locator('a.clsmanage[onclick*="InitTravel"]'),
+  hasVisitedCountriesYesLabel: (page) => page.locator('label[for="eduVistedCntY"]'),
+  hasVisitedCountriesNoLabel: (page) => page.locator('label[for="eduVistedCntN"]'),
+
+  // Main applicant's slot always renders first inside this container; family members follow it.
+  addCountryVisitedDetailsButton: (page) => page.locator('button[onclick="GetTravelHistoryById(this,0);"]'),
+  addCountryVisitedModal: (page) => page.getByRole('heading', { name: 'Add Countries visited' }),
+  mainApplicantCountriesVisitedCard: (page) => page.locator('#divCountriesVisitDetails .card').first(),
+
+  visitedCountryDropdown: (page) => page.locator('#select2-ddlTrvHisCountry-container'),
+  arrivalDateInput: (page) => page.locator('#txtArrivalDate'),
+  departureDateInput: (page) => page.locator('#txtDepartDate'),
+  saveCountryVisitedButton: (page) => page.locator('#btnSaveTravel'),
+
+  // ---------- Finances card & Add Sponsor ----------
+  // Verified against the real DOM (StudentTileDetails.aspx, "List all the accessible funds..." section).
+  financesCardHeading: (page) => page.locator('#tileContainer').getByText('Finances', { exact: true }),
+  addfinancesButton: (page) => page.locator('a.clsmanage[onclick*="InitSponsor"]'),
+
+  weeklyIncomeInput: (page) => page.locator('#txtWeekIncome'),
+  financialSupportYesLabel: (page) => page.locator('label[for="staySupportYes"]'),
+  financialSupportNoLabel: (page) => page.locator('label[for="staySupportNo"]'),
+  // Only rendered once "Yes" is selected for financial support.
+  supportDetailsTextarea: (page) => page.locator('#txtProvdDtl'),
+  saveFinanceQuestionsButton: (page) => page.locator('a[onclick="SaveSponsorAditnlQuesn();"]'),
+
+  addSponsorButton: (page) => page.locator('a[onclick="showAddUpdateSponsorPopup(false);"]'),
+  addSponsorModal: (page) => page.getByRole('heading', { name: 'Add Sponsor' }),
+  sponsorRelationshipDropdown: (page) => page.locator('#select2-ddlRelationShip_Sponsor-container'),
+  sponsorFirstNameInput: (page) => page.locator('#txtSponsorFirstName'),
+  sponsorMiddleNameInput: (page) => page.locator('#txtSponsorMiddleName'),
+  sponsorLastNameInput: (page) => page.locator('#txtSponsorLastName'),
+  sponsorCountryDropdown: (page) => page.locator('#select2-ddlCountry_Sponsor-container'),
+  // Toggling this reveals the income-details panel (currency + amount, this year/last year).
+  sponsorAnnualIncomeToggleLabel: (page) => page.locator('label[for="sponserAnualIncome"]'),
+  sponsorCYCurrencyDropdown: (page) => page.locator('#select2-ddlCountry_CYcurrency-container'),
+  sponsorCYIncomeInput: (page) => page.locator('#txtIncomeCY'),
+  sponsorLYCurrencyDropdown: (page) => page.locator('#select2-ddlCountry_LYcurrency-container'),
+  sponsorLYIncomeInput: (page) => page.locator('#txtIncomeLY'),
+  sponsorModalDoneButton: (page) => page.locator('button[onclick="addUpdateSponsor();"]'),
+  // "Sponsors" is the bootstrap tab-pane id (href="#Sponsors" on the Sponsors-tab link).
+  sponsorRow: (page, sponsorName) => page.locator('#Sponsors tr').filter({ hasText: sponsorName }),
+
+  // ---------- OSHC card ----------
+  // Verified against the real DOM (StudentTileDetails.aspx, "Manage OSHC details" section).
+  oshcCardHeading: (page) => page.locator('#tileContainer').getByText('OSHC', { exact: true }),
+  addoshcButton: (page) => page.locator('a.clsmanage[onclick*="InitOshcProfile"]'),
+  hasOshcYesLabel: (page) => page.locator('label[for="chkOshcYes"]'),
+  hasOshcNoLabel: (page) => page.locator('label[for="chkOshcNo"]'),
+  awareOshcRequirementYesLabel: (page) => page.locator('label[for="chkHealthOshcYes"]'),
+  awareOshcRequirementNoLabel: (page) => page.locator('label[for="chkHealthOshcNo"]'),
+  saveOshcButton: (page) => page.locator('#btnOshcSave'),
+
+  // ---------- Resume card ----------
+  // Verified against the real DOM (StudentTileDetails.aspx, "Manage resume" section).
+  resumeCardHeading: (page) => page.locator('#tileContainer').getByText('Resume', { exact: true }),
+  addresumeButton: (page) => page.locator('a.clsmanage[onclick*="InitResumeProfile"]'),
+  // Main applicant's slot always renders first; family members' rows follow it.
+  attachResumeButton: (page) => page.getByRole('button', { name: 'Attach resume' }).first(),
+  mainApplicantResumeFileDisplay: (page) => page.locator('#fileDisplay_0'),
 
   // ---------- Test evidences modal ----------
   testEvidenceModal: (page) =>
@@ -180,8 +322,6 @@ highestQualificationRadio: (page, answer) =>page.locator('label[for="radio12"]')
   testEvidenceFileInput: (page) => studentAddressLocators.testEvidenceModal(page).locator('input[type="file"]'),
   testEvidenceDoneButton: (page) => studentAddressLocators.testEvidenceModal(page).getByRole('button', { name: 'Done', exact: true }),
   testEvidenceCancelButton: (page) => studentAddressLocators.testEvidenceModal(page).getByRole('button', { name: 'Cancel', exact: true }),
-
-  languageAbilityDoneButton: (page) => page.locator('button[onclick="saveLanguageAbility(this)"]'),
 
 };
 

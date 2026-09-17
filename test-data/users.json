@@ -2,5 +2,9 @@
   "assessorUser": {
     "username": "oceanic.admin@yopmail.com",
     "password": "Door@123"
+  },
+  "trainingAdminUser": {
+    "username": "demoworld.admin@yopmail.com",
+    "password": "Dell@123"
   }
 }

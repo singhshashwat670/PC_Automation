@@ -2,7 +2,10 @@ const { test, expect } = require('../fixtures/app.fixture');
 
 test.describe('Student Profile - Address Workflow', () => {
   test.beforeEach(async ({ loginPage, dashboardPage, users, logger }) => {
-    test.setTimeout(90000);
+    // addResidentialAddress() now runs the full 11-section chain (Address through Resume)
+    // in one continuous test; 90s was sized for a single isolated section and is no longer
+    // enough, especially as the shared/persistent test student's data volume grows run over run.
+    test.setTimeout(300000);
     logger.info('===== Student Address Test Execution Started =====');
     await loginPage.navigateToLogin();
     await loginPage.login(users.assessorUser.username, users.assessorUser.password);
@@ -21,18 +24,22 @@ test.describe('Student Profile - Address Workflow', () => {
     studentData
   }) => {
     // Reusing a student created in a prior run (creation step is disabled above).
-    const studentEmail = 'Divya.1785782025552@yopmail.com';
+    //const studentEmail = 'Divya.1788235311659@yopmail.com';
 
+    // This student is shared/persistent across runs, so a static family name would
+    // accumulate duplicate rows on every re-run; suffix it to keep each run's row unique.
+    const familyMemberData = { ...studentData.familyMember, familyName: `${studentData.familyMember.familyName}${Date.now()}` };
+   const studentEmail = `${studentData.studentEmailPrefix}.${Date.now()}@yopmail.com`;
     await admissionPage.navigateToAdmissionsModule();
     await admissionPage.validateAdmissionsPageLoaded();
 
     // Create the student to have a known profile to open and fill the address for.
-   /* await admissionPage.clickNewStudent();
-    await admissionPage.createStudent(studentData, studentEmail);
+   await admissionPage.clickNewStudent();
+    await admissionPage.createStudent(studentData,studentEmail);
     await admissionPage.clickDone();
     await admissionPage.validateCreatedStudentProfile(studentData.givenName);
     await admissionPage.navigateBack();
-    */
+    
 
     await admissionPage.validateAdmissionsPageLoaded();
     await admissionPage.searchStudent(studentEmail);
@@ -45,7 +52,16 @@ test.describe('Student Profile - Address Workflow', () => {
       studentData.address,
       studentData.passport,
       studentData.qualifications,studentData.employments,
-      `${studentData.givenName} ${studentData.familyName}`
+      `${studentData.givenName} ${studentData.familyName}`,
+      studentData.languageAbility,
+      familyMemberData,
+      studentData.visaHistory,
+      studentData.visaApplication,
+      studentData.countryVisited,
+      studentData.finance,
+      studentData.sponsor,
+      studentData.oshc,
+      studentData.resumeFilePath
     );
   });
 });

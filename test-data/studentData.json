@@ -85,21 +85,84 @@
       "endDate": "31-05-2023"
     },
 
+  "familyMember": {
+    "relationship": "Spouse",
+    "nationality": "India",
+    "title": "Mr",
+    "givenName": "Rohan",
+    "middleName": "Kumar",
+    "familyName": "Paul",
+    "gender": "Male",
+    "dateOfBirth": "20-05-1985",
+    "maritalStatus": "Married",
+    "dateOfMarriage": "15-05-2020",
+    "email": "rohan.family@yopmail.com",
+    "mobileCountryCode": "IND (+91)",
+    "mobileNumber": "9998887771",
+    "country": "India",
+    "state": "Chandigarh",
+    "city": "Chandigarh",
+    "addressLine1": "Aroma chowk, sector22B",
+    "postcode": "160022",
+    "travelWithMain": true
+  },
+
+  "visaHistory": {
+    "hasAppliedForVisa": false,
+    "hasBeenRefusedVisa": false,
+    "hasBreachedVisaCondition": false
+  },
+  "visaApplication": {
+    "country": "India",
+    "visaType": "Study",
+    "applicationDate": "16-09-2026",
+    "decisionDate": "16-11-2035",
+    "outcome": "In progress"
+  },
+  "countryVisited": {
+    "country": "Australia",
+    "arrivalDate": "10-01-2024",
+    "departureDate": "20-01-2024"
+  },
+  "finance": {
+    "weeklyIncome": 250,
+    "requiresFinancialSupport": false
+  },
+  "sponsor": {
+    "relationship": "Father",
+    "givenName": "Suresh",
+    "middleName": "",
+    "familyName": "Paul",
+    "country": "India",
+    "annualIncome": {
+      "currentYearCurrency": "INR",
+      "currentYearAmount": 1200000,
+      "lastYearCurrency": "INR",
+      "lastYearAmount": 1000000
+    }
+  },
+  "oshc": {
+    "hasOshc": false,
+    "awareOfRequirement": false
+  },
+  "resumeFilePath": "test-data/assets/resume.pdf",
+
   "languageAbility": {
-    "options": {
-      "hasTakenEnglishTest": false,
-      "familyHasTakenEnglishTest": false,
-      "completedEnglishCourseInAustralia": false,
-      "appliedForElicosProgram": false,
-      "exemptedFromEnglishRequirement": false,
-      "requestProviderPlacementTest": false
-    },
-    "tests": [
-      {
-        "testType": "Studied in English medium",
-        "evidenceFilePath": "test-data/assets/english-medium-evidence.pdf"
-      }
-    ]
+    "toggleId": "has_taken_eng_tests",
+    "testType": "DUOLINGO",
+    "testDate": "10-05-2024",
+    "reportNumber": "DUO123456",
+    "scores": {
+      "speaking": "135",
+      "writing": "130",
+      "reading": "140",
+      "listening": "125",
+      "production": "130",
+      "literacy": "135",
+      "comprehension": "128",
+      "conversation": "132",
+      "overall": "130"
+    }
   }
 
 }
